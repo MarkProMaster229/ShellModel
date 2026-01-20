@@ -1,6 +1,10 @@
 import tkinter as tk
 import threading
 from dowlound import Dowlound
+import importlib.util
+
+
+
 
 class ShellGUI:
     def __init__(self, master):
@@ -22,6 +26,21 @@ class ShellGUI:
 
         self.output_text = tk.Text(master, height=10, width=50, state='normal')
         self.output_text.pack(pady=5)
+
+
+        #например моя модель 
+    def modelOutput(self):
+        from transformers import AutoTokenizer, AutoModelForCausalLM
+        tokenizer = AutoTokenizer.from_pretrained("MarkProMaster229/InternetLanguage")
+        model = AutoModelForCausalLM.from_pretrained("MarkProMaster229/InternetLanguage")
+        input_text = self.input_text.get("1.0", tk.END).strip()
+        inputs = tokenizer(input_text, return_tensors="pt")
+        outputs = model.generate(**inputs, max_length=50, do_sample=True, top_k=50, top_p=0.95)
+        print(tokenizer.decode(outputs[0], skip_special_tokens=True))
+        global output
+        output = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return output
+
         
     def run_model(self):
         input_data = self.input_text.get("1.0", tk.END).strip()
@@ -32,18 +51,21 @@ class ShellGUI:
         threading.Thread(target=self.model_inference, args=(input_data,)).start()
 
     def model_inference(self, input_data):
-        result = f"Модель получила: {input_data}\nРеальный вывод модели здесь."
-        
-        self.output_text.after(0, lambda: self.update_output(result))
+        self.dowFile = Dowlound
+        self.model_module = self.dowFile.uploadfileModel("run.py")
+
+        self.output_text.after(0, lambda: self.update_output(self.modelOutput()))
         
     def update_output(self, result):
         self.output_text.delete("1.0", tk.END)
         self.output_text.insert(tk.END, result)
 
 class Finaly:
-    dowFile = Dowlound
-    model_module = dowFile.uploadfileModel("./run.py")
-
+    def __init__(self):
+        self.dowFile = Dowlound
+        self.model_module = self.dowFile.uploadfileModel("run.py")
+    # Или если модель просто класс
+    # model_instance = model_module.MyModel()
 
 
 
